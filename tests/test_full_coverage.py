@@ -1,6 +1,7 @@
 import json
 import runpy
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -131,8 +132,9 @@ def test_pipeline_with_no_anomalies(tmp_path):
 
 
 def test_pipeline_script_entry_point(capsys, monkeypatch):
-    monkeypatch.chdir("/workspaces/github-skills-challenge")
-    monkeypatch.syspath_prepend("/workspaces/github-skills-challenge/src")
+    repository_root = Path(__file__).resolve().parents[1]
+    monkeypatch.chdir(repository_root)
+    monkeypatch.syspath_prepend(repository_root / "src")
     from event_consumer import EventConsumer as ScriptEventConsumer
 
     event = {
@@ -143,7 +145,7 @@ def test_pipeline_script_entry_point(capsys, monkeypatch):
     }
     monkeypatch.setattr(ScriptEventConsumer, "consume", lambda self: [event])
 
-    runpy.run_path("src/aiops_pipeline.py", run_name="__main__")
+    runpy.run_path(repository_root / "src/aiops_pipeline.py", run_name="__main__")
 
     output = capsys.readouterr().out
     assert "AIOps Pipeline Result" in output
